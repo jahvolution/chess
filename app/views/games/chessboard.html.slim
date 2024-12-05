@@ -1,0 +1,11 @@
+h1 Chessboard
+table.chessboard
+  - @board.reverse.each_with_index do |row, y|
+    tr
+      - row.each_with_index do |cell, x|
+        - piece = @pieces.find { |p| p.position_x == x && p.position_y == y }
+        td class="#{cell} #{(x + y).even? ? 'light' : 'dark'}"
+          - if piece
+            = piece_icon(piece)
+          - else
+            = "&nbsp;".html_safe
