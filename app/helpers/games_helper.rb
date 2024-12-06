@@ -1,13 +1,6 @@
 module GamesHelper
   def piece_icon(piece)
-    icons = {
-      "Pawn"   => { "white" => "♙", "black" => "♟" },
-      "Rook"   => { "white" => "♖", "black" => "♜" },
-      "Knight" => { "white" => "♘", "black" => "♞" },
-      "Bishop" => { "white" => "♗", "black" => "♝" },
-      "Queen"  => { "white" => "♕", "black" => "♛" },
-      "King"   => { "white" => "♔", "black" => "♚" }
-    }
-    icons[piece.piece_type][piece.color]
+    image_path = "chess_pieces/#{piece.color}_#{piece.type.downcase}.svg"
+    image_tag(image_path, alt: piece.type, class: 'chess-piece')
   end
 end

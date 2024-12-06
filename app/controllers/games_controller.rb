@@ -1,13 +1,20 @@
 class GamesController < ApplicationController
-  def chessboard
-    @board = Array.new(8) { Array.new(8, nil) }
+  helper GamesHelper
 
-    @game = Game.first
-    if @game
-      @pieces = @game.pieces
-      @pieces.each do |piece|
-        @board[piece.position_y][piece.position_x] = "#{piece.color[0].upcase}#{piece.piece_type[0]}"
-      end
-    end
+  def start
+
+  end
+
+  def new
+    Game.destroy_all
+    ActiveRecord::Base.connection.reset_pk_sequence!('games')
+    @game = Game.create
+    redirect_to @game
+  end
+
+  def show
+    @game = Game.find(params[:id])
+    @pieces = @game.pieces
+    @board = Array.new(8) { Array.new(8) }
   end
 end

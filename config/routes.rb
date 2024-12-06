@@ -1,8 +1,8 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  get 'chessboard', to: 'games#chessboard'
-
-  # Defines the root path route ("/")
-  # root "posts#index"
+  root "games#start"
+  resources :games, only: [:new, :show] do
+    resources :pieces, only: [:update] do
+      get :legal_moves, on: :member
+    end
+  end
 end
