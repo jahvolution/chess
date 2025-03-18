@@ -1,39 +1,51 @@
 class Pawn < Piece
-  def legal_moves
-    direction = color == "white" ? -1 : 1
-    puts "Direction: #{direction}" # Debugging direction
+  attr_accessor :moved
 
-    moves = []
+  def initialize(color, position)
+    super(color, position)
+    @moved = false
+  end
 
-    # Move forward one square
-    next_y = position_y + direction
-    puts "Next Y: #{next_y}"
-    puts "Is square (#{position_x}, #{next_y}) empty? #{game.pieces.none? { |p| p.position_x == position_x && p.position_y == next_y }}"
-    if game.pieces.none? { |p| p.position_x == position_x && p.position_y == next_y }
-      moves << [position_x, next_y]
+  def symbol
+    color == :white ? "♟" : "♙"
+  end
+
+  def valid_move?(end_pos, board, last_move = nil)
+    start_row, start_col = @position
+    end_row, end_col = end_pos
+    direction = color == :white ? -1 : 1
+
+    # Normal one-step forward
+    if end_col == start_col && end_row == start_row + direction && board.grid[end_row][end_col].nil?
+      return true
     end
 
-    # Move forward two squares if on starting rank
-    starting_rank = color == "white" ? 6 : 1
-    if position_y == starting_rank &&
-       game.pieces.none? { |p| p.position_x == position_x && p.position_y == position_y + direction } &&
-       game.pieces.none? { |p| p.position_x == position_x && p.position_y == position_y + (2 * direction) }
-      moves << [position_x, position_y + (2 * direction)]
+    # Two-square move on first move
+    if !@moved && end_col == start_col && end_row == start_row + (2 * direction) &&
+       board.grid[start_row + direction][end_col].nil? && board.grid[end_row][end_col].nil?
+      return true
     end
 
-    # Capture diagonally
-    [-1, 1].each do |dx|
-      next_x = position_x + dx
-      next_y = position_y + direction
-      piece = game.pieces.find { |p| p.position_x == next_x && p.position_y == next_y }
-      if piece && piece.color != color
-        moves << [next_x, next_y]
-      end
+    # Capture move (diagonal)
+    if (end_col - start_col).abs == 1 && end_row == start_row + direction
+      return !board.grid[end_row][end_col].nil? && board.grid[end_row][end_col].color != color
     end
 
-    # Filter out-of-bounds moves
-    moves = moves.select { |x, y| x.between?(0, 7) && y.between?(0, 7) }
-    puts "Legal moves for Pawn #{id} at (#{position_x}, #{position_y}): #{moves.inspect}" # Output all moves
-    moves
+    # En Passant
+    if last_move && last_move[:piece].is_a?(Pawn) &&
+       (last_move[:start_pos][0] - last_move[:end_pos][0]).abs == 2 && # Enemy pawn moved 2 squares
+       last_move[:end_pos][0] == start_row && # Same row
+       (last_move[:end_pos][1] - start_col).abs == 1 && # Next to the pawn
+       end_row == start_row + direction && end_col == last_move[:end_pos][1] # Move diagonally into empty space
+
+      return true
+    end
+
+    false
+  end
+
+  def move(end_pos)
+    @moved = true
+    @position = end_pos
   end
 end

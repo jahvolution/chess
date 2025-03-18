@@ -1,42 +1,81 @@
-# == Schema Information
-#
-# Table name: games
-#
-#  id         :bigint           not null, primary key
-#  turn       :integer
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#
-class Game < ApplicationRecord
-  has_many :pieces, dependent: :destroy
+class Game
+  attr_reader :board, :current_player
 
-  # Automatically initialize pieces when a game is created
-  after_create :initialize_pieces
+  def initialize
+    @board = Board.new
+    @current_player = :white
+  end
+
+  def play
+    puts "Welcome to Chess! White moves first."
+    board.display
+
+    until game_over?
+      take_turn
+    end
+
+    puts "Game over! #{winner_message}"
+  end
 
   private
 
-  # Initialize all chess pieces for the game
-  def initialize_pieces
-    # Create Pawns
-    (0..7).each do |i|
-      pieces.create!(type: "Pawn", color: "white", position_x: i, position_y: 6) # White pawns on row 6
-      pieces.create!(type: "Pawn", color: "black", position_x: i, position_y: 1) # Black pawns on row 1
-    end
+  def take_turn
+    puts "#{current_player.to_s.capitalize}'s turn. Enter move (e.g., 'e2 e4'):"
+    input = gets.chomp.downcase
+    start_pos, end_pos = parse_input(input)
 
-    # Create major pieces
-    setup_major_pieces("white", 7) # White major pieces on row 7
-    setup_major_pieces("black", 0) # Black major pieces on row 0
+    if valid_move?(start_pos, end_pos)
+      piece = board.grid[start_pos[0]][start_pos[1]]
+      piece.move(end_pos)
+      board.grid[end_pos[0]][end_pos[1]] = piece
+      board.grid[start_pos[0]][start_pos[1]] = nil
+      switch_player
+      board.display
+    else
+      puts "Invalid move. Try again."
+    end
   end
 
-  # Create major chess pieces (Rooks, Knights, etc.) for a given color and row
-  def setup_major_pieces(color, row)
-    pieces.create!(type: "Rook", color: color, position_x: 0, position_y: row)
-    pieces.create!(type: "Knight", color: color, position_x: 1, position_y: row)
-    pieces.create!(type: "Bishop", color: color, position_x: 2, position_y: row)
-    pieces.create!(type: "Queen", color: color, position_x: 3, position_y: row)
-    pieces.create!(type: "King", color: color, position_x: 4, position_y: row)
-    pieces.create!(type: "Bishop", color: color, position_x: 5, position_y: row)
-    pieces.create!(type: "Knight", color: color, position_x: 6, position_y: row)
-    pieces.create!(type: "Rook", color: color, position_x: 7, position_y: row)
+  def parse_input(input)
+    coordinates = input.split.map do |pos|
+      next unless pos.match?(/^[a-h][1-8]$/) # Ensure input is in correct format
+      [8 - pos[1].to_i, pos[0].ord - 'a'.ord]
+    end
+
+    if coordinates.compact.size == 2
+      return coordinates
+    else
+      puts "Invalid input format. Please use the format 'e2 e4'."
+      return take_turn
+    end
+  end
+
+  def valid_move?(start_pos, end_pos)
+    piece = board.grid[start_pos[0]][start_pos[1]]
+
+    if piece.nil?
+      puts "No piece at the selected position. Try again."
+      return false
+    end
+
+    unless piece.color == current_player
+      puts "You can only move your own pieces. Try again."
+      return false
+    end
+
+    piece.valid_move?(end_pos, board)
+  end
+
+  def switch_player
+    @current_player = @current_player == :white ? :black : :white
+  end
+
+  def game_over?
+    king = board.grid.flatten.compact.find { |piece| piece.is_a?(King) && piece.color == current_player }
+    king&.checkmate?(board) || false
+  end
+
+  def winner_message
+    current_player == :white ? "Black wins!" : "White wins!"
   end
 end
