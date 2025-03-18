@@ -1,24 +1,20 @@
-# README
+# Chess Game
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Quickstart
 
-Things you may want to cover:
+### 1. Download & Install
+- Clone the repository:
+  ```sh
+  git clone https://github.com/yourusername/chess-game.git
+  cd chess-game
 
-* Ruby version
+- Install dependencies:
+  `npm install`
 
-* System dependencies
+### 2. Run the Game
+- Start the game with:
+`npm start`
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+### 3. Play
+- Start the game with:
+  `npm start`
