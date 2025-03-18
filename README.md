@@ -16,5 +16,8 @@
 `npm start`
 
 ### 3. Play
-- Start the game with:
-  `npm start`
+- Run the following commands:
+```sh
+rails c
+game = Game.new
+game.play
